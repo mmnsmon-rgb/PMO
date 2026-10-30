@@ -1,0 +1,12 @@
+node_modules
+.svelte-kit
+.wrangler
+build
+.env
+.env.*
+!.env.example
+local.db
+local.db-*
+
+# local tooling
+.claude/
