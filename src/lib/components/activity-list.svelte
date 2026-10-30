@@ -8,7 +8,7 @@
 		createdAt: string;
 		by: string;
 		action: keyof typeof ACTION_LABEL;
-		entityType: 'task' | 'project' | 'user';
+		entityType: 'task' | 'project' | 'user' | 'timesheet' | 'worker';
 		entityId: number;
 		entityLabel: string;
 		revertable: boolean;
@@ -26,11 +26,17 @@
 		update: 'bg-blue-500',
 		delete: 'bg-rose-500',
 		revert: 'bg-amber-500',
-		import: 'bg-slate-400'
+		import: 'bg-slate-400',
+		export: 'bg-violet-500'
 	};
-	const entityTH = { task: 'งาน', project: 'โปรเจกต์', user: 'พนักงาน' };
-	const href = (e: Entry) =>
-		e.action === 'delete' ? null : e.entityType === 'task' ? `/tasks/${e.entityId}` : e.entityType === 'project' ? `/projects/${e.entityId}` : null;
+	const entityTH = { task: 'งาน', project: 'โปรเจกต์', user: 'พนักงาน', timesheet: 'ใบงาน', worker: 'ลูกจ้าง' };
+	const hrefs: Partial<Record<Entry['entityType'], (id: number) => string>> = {
+		task: (id) => `/tasks/${id}`,
+		project: (id) => `/projects/${id}`,
+		timesheet: (id) => `/timesheets/${id}`,
+		worker: (id) => `/workers?history=${id}`
+	};
+	const href = (e: Entry) => (e.action === 'delete' || !e.entityId ? null : (hrefs[e.entityType]?.(e.entityId) ?? null));
 </script>
 
 {#if entries.length === 0}

@@ -5,21 +5,23 @@ import { db } from '$lib/server/db';
 import { projects, users } from '$lib/server/db/schema';
 import { groupBy, summarize } from '$lib/server/stats';
 import { listTasks } from '$lib/server/tasks';
+import { listSheets } from '$lib/server/payroll';
 import { timeState, today } from '$lib/labels';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
 	requireAdmin(event);
-	const [rows, members, projectList, recent] = await Promise.all([
+	const now = today();
+	const [rows, members, projectList, recent, payroll] = await Promise.all([
 		listTasks(),
 		db.select({ id: users.id, name: users.name, position: users.position }).from(users).where(eq(users.active, true)),
 		db.select().from(projects).orderBy(projects.name),
-		loadActivity({ limit: 8 })
+		loadActivity({ limit: 8 }),
+		listSheets({ from: now.slice(0, 7) + '-01', to: now.slice(0, 7) + '-31' })
 	]);
 
 	const byUser = groupBy(rows, (t) => t.assigneeId);
 	const byProject = groupBy(rows, (t) => t.projectId);
-	const now = today();
 	const byDue = (a: { dueDate: string | null }, b: { dueDate: string | null }) =>
 		(a.dueDate ?? '').localeCompare(b.dueDate ?? '');
 
@@ -40,6 +42,12 @@ export const load: PageServerLoad = async (event) => {
 		}),
 		overdue: rows.filter((t) => timeState(t, now) === 'overdue').sort(byDue),
 		dueSoon: rows.filter((t) => timeState(t, now) === 'soon').sort(byDue),
-		recent
+		recent,
+		payroll: {
+			approved: payroll.filter((s) => s.status === 'approved').reduce((a, s) => a + s.total, 0),
+			pending: payroll.filter((s) => s.status === 'submitted'),
+			drafts: payroll.filter((s) => s.status === 'draft').length,
+			sheets: payroll.length
+		}
 	};
 };

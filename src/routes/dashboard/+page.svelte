@@ -6,6 +6,7 @@
 	import ProgressBar from '$lib/components/progress-bar.svelte';
 	import ActivityList from '$lib/components/activity-list.svelte';
 	import { fmtDate, pct } from '$lib/labels';
+	import { fmtBaht } from '$lib/payroll';
 	import Printer from '@lucide/svelte/icons/printer';
 
 	let { data } = $props();
@@ -40,6 +41,24 @@
 		</Card.Root>
 	{/each}
 </div>
+
+<Card.Root class="mt-6">
+	<Card.Content class="flex flex-wrap items-center gap-x-8 gap-y-3">
+		<div>
+			<div class="text-muted-foreground text-xs">ค่าแรงรายวันเดือนนี้ (อนุมัติแล้ว)</div>
+			<div class="text-2xl font-semibold text-emerald-700 tabular-nums">{fmtBaht(data.payroll.approved)} ฿</div>
+		</div>
+		<div class="text-sm">
+			<div>{data.payroll.sheets} ใบงาน · ร่าง {data.payroll.drafts}</div>
+			{#if data.payroll.pending.length}
+				<a href="/timesheets?status=submitted" class="font-medium text-amber-700 hover:underline">รอตรวจ {data.payroll.pending.length} ใบ →</a>
+			{:else}
+				<span class="text-muted-foreground">ไม่มีใบงานรอตรวจ</span>
+			{/if}
+		</div>
+		<Button href="/payroll" variant="outline" size="sm" class="ml-auto">สรุปทำจ่าย →</Button>
+	</Card.Content>
+</Card.Root>
 
 <div class="mt-6 grid gap-6 xl:grid-cols-3">
 	<Card.Root class="xl:col-span-2">

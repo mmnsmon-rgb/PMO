@@ -1,5 +1,6 @@
 import { desc, eq, type SQL } from 'drizzle-orm';
 import { FIELD_LABEL, PRIORITY_LABEL, STATUS_LABEL, fmtDate } from '$lib/labels';
+import { fmtBaht, SHEET_STATUS_LABEL, type SheetStatusKey } from '$lib/payroll';
 import { db } from './db';
 import { activityLogs, projects, users, type ActivityLog } from './db/schema';
 
@@ -67,6 +68,14 @@ export async function loadActivity(opts: { where?: SQL; limit?: number; offset?:
 				return v ? 'ใช้งาน' : 'ปิดใช้งาน';
 			case 'password':
 				return '••••';
+			case 'sheetStatus':
+				return SHEET_STATUS_LABEL[v as SheetStatusKey] ?? String(v);
+			case 'sheetTotal':
+			case 'dailyWage':
+			case 'travelAllowance':
+			case 'mealAllowance':
+			case 'nightAllowance':
+				return `${fmtBaht(Number(v))} ฿`;
 			default:
 				return String(v);
 		}

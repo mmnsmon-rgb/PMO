@@ -24,7 +24,18 @@ export const FIELD_LABEL: Record<string, string> = {
 	duty: 'หน้าที่',
 	level: 'ระดับ',
 	active: 'สถานะบัญชี',
-	password: 'รหัสผ่าน'
+	password: 'รหัสผ่าน',
+	// payroll
+	bank: 'ธนาคาร',
+	accountNo: 'เลขบัญชี',
+	department: 'หน่วยงาน',
+	sheetStatus: 'สถานะใบงาน',
+	sheetTotal: 'ยอดรวมใบงาน',
+	dailyWage: 'ค่าแรง/วัน',
+	travelAllowance: 'ค่าเดินทาง',
+	mealAllowance: 'ค่าอาหาร',
+	nightAllowance: 'ค่ากะดึก',
+	exported: 'ไฟล์'
 };
 
 export const ACTION_LABEL = {
@@ -32,7 +43,8 @@ export const ACTION_LABEL = {
 	update: 'แก้ไข',
 	delete: 'ลบ',
 	revert: 'ย้อนกลับ',
-	import: 'นำเข้า'
+	import: 'นำเข้า',
+	export: 'ส่งออก'
 } as const;
 
 /** Today as YYYY-MM-DD in Bangkok time. */

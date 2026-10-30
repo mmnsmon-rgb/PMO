@@ -10,6 +10,9 @@
 	import Users from '@lucide/svelte/icons/users';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Menu from '@lucide/svelte/icons/menu';
+	import ReceiptText from '@lucide/svelte/icons/receipt-text';
+	import HardHat from '@lucide/svelte/icons/hard-hat';
+	import Wallet from '@lucide/svelte/icons/wallet';
 	import { cn } from '$lib/utils';
 
 	let { data, children } = $props();
@@ -17,10 +20,13 @@
 
 	const nav = $derived([
 		...(data.user?.role === 'admin' ? [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }] : []),
-		{ href: '/my', label: 'งานของฉัน', icon: ListChecks },
+		{ href: '/my', label: 'งานของฉัน', icon: ListChecks, group: 'โปรเจกต์ & งาน' },
 		{ href: '/board', label: 'Kanban Board', icon: Columns3 },
 		{ href: '/projects', label: 'โปรเจกต์', icon: FolderKanban },
-		{ href: '/activity', label: 'ประวัติการแก้ไข', icon: History },
+		{ href: '/timesheets', label: 'ใบงานค่าแรงรายวัน', icon: ReceiptText, group: 'ค่าแรงรายวัน' },
+		{ href: '/workers', label: 'ลูกจ้างรายวัน', icon: HardHat },
+		...(data.user?.role === 'admin' ? [{ href: '/payroll', label: 'สรุปทำจ่าย', icon: Wallet }] : []),
+		{ href: '/activity', label: 'ประวัติการแก้ไข', icon: History, group: 'ระบบ' },
 		...(data.user?.role === 'admin' ? [{ href: '/users', label: 'จัดการพนักงาน', icon: Users }] : [])
 	]);
 
@@ -44,6 +50,9 @@
 			</div>
 			<nav class="flex-1 space-y-1 p-3">
 				{#each nav as item (item.href)}
+					{#if 'group' in item && item.group}
+						<div class="px-3 pt-4 pb-1 text-[11px] font-medium tracking-wide text-blue-200/60 uppercase">{item.group}</div>
+					{/if}
 					<a
 						href={item.href}
 						onclick={() => (open = false)}

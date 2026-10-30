@@ -8,6 +8,9 @@ build
 local.db
 local.db-*
 
+# real payroll files (names + bank accounts) — keep out of git
+data/dsv/
+
 # local tooling
 .claude/
 seed.sql

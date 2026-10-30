@@ -36,6 +36,8 @@
 		<option value="">ทุกประเภท</option>
 		<option value="task">งาน</option>
 		<option value="project">โปรเจกต์</option>
+		<option value="timesheet">ใบงานค่าแรง</option>
+		<option value="worker">ลูกจ้างรายวัน</option>
 		{#if isAdmin}<option value="user">พนักงาน</option>{/if}
 	</select>
 	<Input type="date" name="from" value={data.filter.from} class="w-auto" aria-label="ตั้งแต่วันที่" />
