@@ -35,7 +35,8 @@ export const FIELD_LABEL: Record<string, string> = {
 	travelAllowance: 'ค่าเดินทาง',
 	mealAllowance: 'ค่าอาหาร',
 	nightAllowance: 'ค่ากะดึก',
-	exported: 'ไฟล์'
+	exported: 'ไฟล์',
+	importResult: 'ผลการนำเข้า'
 };
 
 export const ACTION_LABEL = {

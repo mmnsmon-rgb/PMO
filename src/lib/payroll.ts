@@ -71,3 +71,49 @@ export const fmtNum = (n: number) => num.format(n);
 /** Strip zero-width spaces (common in names pasted from LINE) and collapse whitespace. */
 export const cleanName = (s: string) => s.replace(/[​-‍﻿]/g, '').replace(/\s+/g, ' ').trim();
 export const cleanAccount = (s: string) => s.replace(/\D/g, '');
+
+export type WorkerRow = { line: number; name: string; bank: string; accountNo: string; department: string | null; active?: boolean };
+
+/**
+ * Find the header row (within the first 15 rows) by its column titles and read workers below it.
+ * Accepts the /workers export and the old "เงินสด DSV" daily files (header on row 3).
+ */
+export function parseWorkerTable(grid: string[][]): { error: string } | { rows: WorkerRow[] } {
+	const find = (cells: string[], re: RegExp) => cells.findIndex((c) => re.test(c.replace(/\s+/g, '')));
+	for (let h = 0; h < Math.min(grid.length, 15); h++) {
+		const head = (grid[h] ?? []).map((c) => String(c ?? ''));
+		const col = {
+			name: find(head, /^(ชื่อ-?นามสกุล|ชื่อ|name)$/i),
+			bank: find(head, /^(ธนาคาร|bank)$/i),
+			account: find(head, /^(เลขบัญชี|เลขที่บัญชี|account(no)?)$/i),
+			department: find(head, /^(หน่วยงาน|department|แผนก|ไซต์)$/i),
+			active: find(head, /^(สถานะ|status)$/i)
+		};
+		if (col.name < 0 || col.account < 0) continue;
+		const rows: WorkerRow[] = [];
+		for (let r = h + 1; r < grid.length; r++) {
+			const cell = (i: number) => (i < 0 ? '' : String(grid[r]?.[i] ?? '').trim());
+			const name = cleanName(cell(col.name));
+			if (!name) continue;
+			const status = cell(col.active);
+			rows.push({
+				line: r + 1,
+				name,
+				bank: cell(col.bank),
+				accountNo: cleanAccount(cell(col.account)),
+				department: cell(col.department) || null,
+				...(status ? { active: !/ปิด|inactive|ระงับ/i.test(status) } : {})
+			});
+		}
+		return { rows };
+	}
+	return { error: 'ไม่พบหัวตาราง — ต้องมีคอลัมน์ "ชื่อ-นามสกุล" และ "เลขบัญชี" (ดูตัวอย่างจากไฟล์ส่งออก)' };
+}
+
+/** Problem with an imported row, or null when it is usable. */
+export function workerRowError(r: Pick<WorkerRow, 'name' | 'bank' | 'accountNo'>) {
+	if (!r.bank) return 'ไม่มีธนาคาร';
+	if (r.accountNo.length < 10 || r.accountNo.length > 15)
+		return r.accountNo.length === 9 ? 'เลขบัญชี 9 หลัก (เลข 0 ข้างหน้าอาจหาย — จัดรูปแบบคอลัมน์เป็นข้อความ)' : 'เลขบัญชีต้องเป็นตัวเลข 10–15 หลัก';
+	return null;
+}
