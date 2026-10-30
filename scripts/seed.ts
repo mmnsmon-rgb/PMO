@@ -8,7 +8,7 @@
 //   npx wrangler d1 execute pmo-db --remote --file seed.sql   (production)
 // Without --password a random password is generated and printed — every
 // seeded account gets it. Never commit seed.sql (it contains password hashes).
-import { existsSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import ExcelJS from 'exceljs';
 import type { Shift, TaskPriority, TaskStatus } from '../src/lib/server/db/schema.ts';
@@ -21,7 +21,13 @@ const flag = (name: string) => {
 	return i >= 0 ? args.splice(i, 2)[1] : undefined;
 };
 const OUT = flag('--out') ?? 'seed.sql';
-const PASSWORD = flag('--password') ?? crypto.randomUUID().replace(/-/g, '').slice(0, 12);
+// Same password as production when .seed-credentials.txt (gitignored, line 2) exists,
+// so one password works on both localhost and the live site.
+const savedPassword = existsSync('.seed-credentials.txt')
+	? readFileSync('.seed-credentials.txt', 'utf8').split(/\r?\n/)[1]?.trim() || undefined
+	: undefined;
+const passwordFlag = flag('--password');
+const PASSWORD = passwordFlag ?? savedPassword ?? crypto.randomUUID().replace(/-/g, '').slice(0, 12);
 const DSV_DIR = flag('--dsv') ?? 'data/dsv';
 const FILE = args[0] ?? 'data/project_tracking_sample.xlsx';
 
@@ -313,4 +319,8 @@ console.log(
 	`  + ${files.length} DSV files → ${workerByAccount.size} workers, ${sheetId} timesheets, ${dsvRows.length} entries, ` +
 		`total ${dsvTotal.toFixed(2)} ฿ (${mismatches ? `${mismatches} rows differ from Excel` : 'matches Excel to the satang'})`
 );
-console.log(`Password for every seeded account: ${PASSWORD}`);
+console.log(
+	passwordFlag || !savedPassword
+		? `Password for every seeded account: ${PASSWORD}`
+		: 'Password for every seeded account: same as production (.seed-credentials.txt)'
+);

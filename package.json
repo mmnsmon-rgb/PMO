@@ -12,7 +12,7 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "wrangler d1 migrations apply pmo-db --local",
 		"db:migrate:remote": "wrangler d1 migrations apply pmo-db --remote",
-		"db:seed": "node scripts/seed.ts --password pmo1234 && wrangler d1 execute pmo-db --local --file seed.sql"
+		"db:seed": "node scripts/seed.ts && wrangler d1 execute pmo-db --local --file seed.sql"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20261030.1",
