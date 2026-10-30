@@ -5,18 +5,20 @@ SvelteKit (SSR) + Tailwind + shadcn-svelte + Drizzle ORM + SQLite (ย้าย�
 
 ## เริ่มใช้งานบนเครื่อง
 
+ฐานข้อมูลในเครื่องเป็น D1 จำลอง (เก็บใน `.wrangler/state`) ผ่าน wrangler
+
 ```bash
 npm install
-npm run db:push     # สร้างตารางใน local.db
+npm run db:migrate  # สร้างตารางใน D1 ในเครื่อง
 npm run db:seed     # นำเข้าข้อมูลจาก data/project_tracking_sample.xlsx
 npm run dev         # http://localhost:5173
 ```
 
-`npm run db:seed` ล้างข้อมูลเดิมแล้วนำเข้าใหม่จาก Excel ทุกครั้ง (ใช้ไฟล์อื่นได้: `node scripts/seed.ts path/to/file.xlsx`)
+`npm run db:seed` ล้างข้อมูลเดิมแล้วนำเข้าใหม่จาก Excel ทุกครั้ง (สคริปต์สร้างไฟล์ `seed.sql` แล้วรันด้วย wrangler)
 
 ### บัญชีทดสอบ (สำหรับ local เท่านั้น)
 
-ทุกบัญชีใช้รหัสผ่าน `pmo1234` (ตั้งไว้ใน `scripts/seed.ts`)
+ทุกบัญชีในเครื่องใช้รหัสผ่าน `pmo1234` (บนเว็บจริงใช้รหัสผ่านสุ่มคนละชุด)
 
 | บัญชี | สิทธิ์ |
 |---|---|
@@ -65,10 +67,10 @@ src/routes/
   users/, users/[id]        จัดการพนักงาน (Admin)
 ```
 
-## ย้ายไป Cloudflare D1 / Pages (ภายหลัง)
+## Deploy (Cloudflare Workers + D1)
 
-1. สร้าง D1: `npx wrangler d1 create pmo` แล้วเพิ่ม binding `DB` ใน `wrangler.toml`
-2. `npm run db:generate` แล้ว `npx wrangler d1 migrations apply pmo --remote` (ใช้ไฟล์ใน `drizzle/`)
-3. เปลี่ยน `src/lib/server/db/index.ts` เป็น `drizzle(platform.env.DB, { schema })` จาก `drizzle-orm/d1`
-   และสร้าง db ต่อ request ใน `hooks.server.ts` (`event.locals.db`)
-4. Adapter ตั้งเป็น `@sveltejs/adapter-cloudflare` ไว้แล้ว
+- Worker: `pmo` · D1: `pmo-db` (binding `DB`) ตั้งค่าอยู่ใน `wrangler.jsonc`
+- Deploy: `npm run deploy` (build แล้ว `wrangler deploy` ต้อง `npx wrangler login` ก่อน)
+- แก้ schema: แก้ `src/lib/server/db/schema.ts` → `npm run db:generate` → `npm run db:migrate` (ในเครื่อง) และ `npm run db:migrate:remote` (production)
+- นำเข้า Excel ขึ้น production ใหม่ (**ข้อมูลบนเว็บจริงจะถูกล้างทั้งหมด**):
+  `node scripts/seed.ts --out seed-remote.sql` แล้ว `npx wrangler d1 execute pmo-db --remote --file seed-remote.sql`

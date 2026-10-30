@@ -10,3 +10,6 @@ local.db-*
 
 # local tooling
 .claude/
+seed.sql
+seed-*.sql
+.seed-credentials.txt

@@ -1,10 +1,11 @@
 import { sql } from 'drizzle-orm';
 import { index, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-const createdAt = () =>
-	text('created_at')
+const timestamp = (name: string) =>
+	text(name)
 		.notNull()
 		.default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ','now'))`);
+const createdAt = () => timestamp('created_at');
 
 export const users = sqliteTable('users', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
@@ -59,7 +60,7 @@ export const tasks = sqliteTable(
 		progress: integer('progress').notNull().default(0), // 0-100
 		note: text('note'),
 		createdAt: createdAt(),
-		updatedAt: createdAt()
+		updatedAt: timestamp('updated_at')
 	},
 	(t) => [index('tasks_project_idx').on(t.projectId), index('tasks_assignee_idx').on(t.assigneeId)]
 );

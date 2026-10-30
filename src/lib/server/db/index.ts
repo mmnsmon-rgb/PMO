@@ -1,11 +1,21 @@
-import { createClient } from '@libsql/client';
-import { drizzle } from 'drizzle-orm/libsql';
-import { env } from '$env/dynamic/private';
+import type { D1Database } from '@cloudflare/workers-types';
+import { drizzle } from 'drizzle-orm/d1';
 import * as schema from './schema';
 
-// Local SQLite file. For Cloudflare D1, replace with
-// `drizzle(platform.env.DB, { schema })` from 'drizzle-orm/d1' in hooks.server.ts.
-const client = createClient({ url: env.DATABASE_URL ?? 'file:local.db' });
+export type DB = ReturnType<typeof drizzle<typeof schema>>;
 
-export const db = drizzle(client, { schema });
-export type DB = typeof db;
+let current: DB | undefined;
+
+/** Bind the Cloudflare D1 database for this request (called from hooks.server.ts). */
+export function useD1(d1: D1Database) {
+	current = drizzle(d1, { schema });
+}
+
+// The D1 binding is the same object for every request in an isolate, so a
+// module-level handle is safe; the proxy lets modules `import { db }` directly.
+export const db = new Proxy({} as DB, {
+	get(_, prop) {
+		if (!current) throw new Error('D1 binding "DB" is not available (check wrangler.jsonc)');
+		return Reflect.get(current, prop, current);
+	}
+});
